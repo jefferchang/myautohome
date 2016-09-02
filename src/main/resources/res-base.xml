@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:cache="http://www.springframework.org/schema/cache"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans 
+       http://www.springframework.org/schema/beans/spring-beans-4.1.xsd
+       http://www.springframework.org/schema/context 
+       http://www.springframework.org/schema/context/spring-context-4.1.xsd
+       http://www.springframework.org/schema/cache
+       http://www.springframework.org/schema/cache/spring-cache-4.1.xsd ">
+
+
+    <!--redis配置-->
+    <bean id="myJedisPoolConfig" class="redis.clients.jedis.JedisPoolConfig">
+        <property name="maxTotal" value="200"/>
+        <property name="maxIdle" value="20"/>
+        <!--<property name="jmxEnabled" value="true"/>-->
+    </bean>
+    <bean id="redisClient" class="com.autohome.resadmin.util.RedisClient">
+        <constructor-arg name="config" ref="myJedisPoolConfig"/>
+        <constructor-arg name="ip" value="${redis.ip}"/>
+        <constructor-arg name="port" value="${redis.port}"/>
+        <constructor-arg name="timeOut" value="1000"/>
+        <constructor-arg name="expired" value="300"/>
+    </bean>
+
+    <!--res_activities的solr索引配置-->
+    <bean id="resSolrServer" class="org.apache.solr.client.solrj.impl.HttpSolrServer">
+        <constructor-arg name="baseURL" value="http://${solr.ip}:${solr.port}/solr/dealer_resadmin"/>
+        <property name="connectionTimeout" value="2000"/>
+    </bean>
+
+    <bean id="log4jMDCFilterProxy" class="org.springframework.web.filter.DelegatingFilterProxy">
+        <property name="targetBeanName" value="log4jMDCFilter"/>
+    </bean>
+    <bean id="log4jMDCFilter"
+          class="com.autohome.resadmin.util.Log4jMDCFilter">
+    </bean>
+    <!-- spring cache 配置 -->
+    <!-- 启用缓存注解功能，这个是必须的，否则注解不会生效，另外，该注解一定要声明在spring主配置文件中才会生效 -->
+    <cache:annotation-driven cache-manager="cacheManager"/>
+
+    <!-- 配置缓存管理器,获取cache -->
+    <bean id="cacheManager" class="org.springframework.cache.ehcache.EhCacheCacheManager">
+        <property name="cacheManager" ref="ehCacheFactory"/>
+    </bean>
+
+    <!-- 配置Ehcache缓存管理器,读取配置文件 -->
+    <bean id="ehCacheFactory" class="org.springframework.cache.ehcache.EhCacheManagerFactoryBean">
+        <property name="configLocation" value="classpath:ehcache.xml"/>
+        <property name="shared" value="true"/>
+    </bean>
+
+    <bean id="metaCache" class="com.autohome.resadmin.util.EhCacheClient">
+        <constructor-arg ref="cacheManager"/>
+        <constructor-arg value="MetaCache"/>
+    </bean>
+
+</beans>

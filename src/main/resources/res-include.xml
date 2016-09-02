@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE beans PUBLIC "-//Spring//DTD Bean//EN"
+        "http://www.springframework.org/dtd/spring-beans.dtd">
+<!-- Application Context -->
+<beans>
+    <import resource="res-dataSource.xml"/>
+    <import resource="res-base.xml"/>
+</beans>
